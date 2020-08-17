@@ -11,7 +11,6 @@ Contributions: Michael.DSilva@aarnet.edu.au
 import sys
 import os
 import time
-from datetime import datetime
 import socket
 import configparser
 from platform import python_version
@@ -21,6 +20,7 @@ import urllib.request
 import urllib.parse
 import http.client
 import json
+from datetime import datetime
 import wopiutils as utils
 try:
   import flask                   # Flask app server, python3-flask-0.12.2 + python3-pyOpenSSL-17.3.0
@@ -599,7 +599,7 @@ def wopiCheckFileInfo(fileid):
     # extensions for Collabora Online
     filemd['EnableOwnerTermination'] = True
     filemd['DisableExport'] = filemd['DisableCopy'] = filemd['DisablePrint'] = acctok['viewmode'] == utils.ViewMode.VIEW_ONLY
-    #filemd['LastModifiedTime'] = datetime.fromtimestamp(int(statInfo['mtime'])).isoformat()   # this currently breaks
+    filemd['LastModifiedTime'] = datetime.fromtimestamp(int(statInfo['mtime'])-7200).isoformat()
     Wopi.log.info('msg="File metadata response" token="%s" metadata="%s"' % (flask.request.args['access_token'][-20:], filemd))
     return flask.Response(json.dumps(filemd), mimetype='application/json')
   except (jwt.exceptions.DecodeError, jwt.exceptions.ExpiredSignatureError) as e:
