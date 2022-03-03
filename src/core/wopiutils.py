@@ -258,7 +258,7 @@ def storeWopiLock(fileid, operation, lock, oldlock, acctok):
     '''Stores the lock for a given file in the form of an encoded JSON string'''
     try:
         # validate that the underlying file is still there (it might have been moved/deleted)
-        statInfo = st.stat(acctok['endpoint'], acctok['filename'], acctok['userid'])
+        statInfo = st.statx(acctok['endpoint'], acctok['filename'], acctok['userid'])
     except IOError as e:
         log.warning('msg="%s: target file not found any longer" filename="%s" token="%s" reason="%s"' %
                     (operation.title(), acctok['filename'], flask.request.args['access_token'][-20:], e))
@@ -326,7 +326,7 @@ def storeWopiLock(fileid, operation, lock, oldlock, acctok):
                      (acctok['userid'][-20:], acctok['filename'], flask.request.args['access_token'][-20:]))
         resp = flask.Response()
         resp.status_code = http.client.OK
-        resp.headers['X-WOPI-ItemVersion'] = 'v%d' % statInfo['mtime']
+        resp.headers['X-WOPI-ItemVersion'] = 'v%s' % statInfo['etag']
         return resp
 
     except IOError as e:

@@ -89,7 +89,8 @@ def stat(endpoint, fileid, userid, versioninv=1):
             'filepath': statInfo.info.path,
             'ownerid': statInfo.info.owner.opaque_id + '@' + statInfo.info.owner.idp,
             'size': statInfo.info.size,
-            'mtime': statInfo.info.mtime.seconds
+            'mtime': statInfo.info.mtime.seconds,
+            'etag': statInfo.info.etag,
         }
     log.info('msg="Failed stat" inode="%s" reason="%s"' % (fileid, statInfo.status.message.replace('"', "'")))
     raise IOError(common.ENOENT_MSG if statInfo.status.code == cs3code.CODE_NOT_FOUND else statInfo.status.message)

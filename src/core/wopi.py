@@ -76,8 +76,8 @@ def checkFileInfo(fileid):
         fmd['OwnerId'] = statInfo['ownerid']
         fmd['UserId'] = acctok['wopiuser']     # typically same as OwnerId; different when accessing shared documents
         fmd['Size'] = statInfo['size']
-        # TODO the version is generated like this in ownCloud: 'V' . $file->getEtag() . \md5($file->getChecksum());
-        fmd['Version'] = 'v%d' % statInfo['mtime']   # mtime is used as version here
+        # note that in ownCloud Enterprise the version is generated as: `'V' . $file->getEtag() . \md5($file->getChecksum())`
+        fmd['Version'] = 'v%s' % statInfo['etag']
         fmd['SupportsExtendedLockLength'] = fmd['SupportsGetLock'] = True
         fmd['SupportsUpdate'] = fmd['UserCanWrite'] = fmd['SupportsLocks'] = \
             fmd['SupportsDeleteFile'] = acctok['viewmode'] == utils.ViewMode.READ_WRITE
@@ -135,11 +135,11 @@ def getFile(fileid):
         if isinstance(firstchunk, IOError):
             return ('Failed to fetch file from storage: %s' % firstchunk), http.client.INTERNAL_SERVER_ERROR
         # stat the file to get the version, TODO this should be cached inside the access token
-        statInfo = st.stat(acctok['endpoint'], acctok['filename'], acctok['userid'])
+        statInfo = st.statx(acctok['endpoint'], acctok['filename'], acctok['userid'])
         # stream file from storage to client
         resp = flask.Response(f, mimetype='application/octet-stream')
         resp.status_code = http.client.OK
-        resp.headers['X-WOPI-ItemVersion'] = 'v%d' % statInfo['mtime']
+        resp.headers['X-WOPI-ItemVersion'] = 'v%s' % statInfo['etag']
         return resp
     except StopIteration as e:
         # File is empty, still return OK (strictly speaking, we should return 204 NO_CONTENT)
@@ -221,7 +221,7 @@ def unlock(fileid, reqheaders, acctok):
     # OK, the lock matches. Remove the lock
     try:
         # validate that the underlying file is still there
-        statInfo = st.stat(acctok['endpoint'], acctok['filename'], acctok['userid'])
+        statInfo = st.statx(acctok['endpoint'], acctok['filename'], acctok['userid'])
         st.unlock(acctok['endpoint'], acctok['filename'], acctok['userid'], acctok['appname'], utils.encodeLock(lock))
     except IOError as e:
         if common.ENOENT_MSG in e:
@@ -242,7 +242,7 @@ def unlock(fileid, reqheaders, acctok):
         pass
     resp = flask.Response()
     resp.status_code = http.client.OK
-    resp.headers['X-WOPI-ItemVersion'] = 'v%d' % statInfo['mtime']
+    resp.headers['X-WOPI-ItemVersion'] = 'v%s' % statInfo['etag']
     return resp
 
 
@@ -441,9 +441,10 @@ def putFile(fileid):
             utils.storeWopiFile(flask.request, retrievedLock, acctok, utils.LASTSAVETIMEKEY)
             log.info('msg="File stored successfully" action="edit" user="%s" filename="%s" token="%s"' %
                     (acctok['userid'][-20:], acctok['filename'], flask.request.args['access_token'][-20:]))
+            statInfo = st.statx(acctok['endpoint'], acctok['filename'], acctok['userid'], versioninv=1)
             resp = flask.Response()
             resp.status_code = http.client.OK
-            resp.headers['X-WOPI-ItemVersion'] = 'v%d' % mtime
+            resp.headers['X-WOPI-ItemVersion'] = 'v%s' % statInfo['etag']
             return resp
 
     except IOError as e:
