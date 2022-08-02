@@ -115,9 +115,9 @@ def loadfromstorage(filemd, wopisrc, acctok, docid):
         _apicall('createGroupPad', {'groupID': groupid, 'padName': docid, 'text': 'placeholder'},
                  acctok=acctok, raiseonnonzerocode=False)
         if len(epfile) > 0:
-            # push content
+            # push content: a .etherpad file is imported as raw (JSON) content
             res = requests.post(appurl + '/p/' + docid + '/import',
-                                files={'file': (docid + '.etherpad', epfile)},  # a .etherpad file is imported as raw (JSON) content
+                                files={'file': (docid + '.etherpad', epfile, 'application/json')},
                                 params={'apikey': apikey},
                                 verify=sslverify)
             if res.status_code != http.client.OK:
