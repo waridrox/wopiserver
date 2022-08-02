@@ -102,8 +102,6 @@ def loadfromstorage(filemd, wopisrc, acctok, docid):
     if res.status_code != http.client.OK:
         raise AppFailure('Unable to fetch file from storage, got HTTP %d' % res.status_code)
     epfile = res.content
-    if not epfile:
-        epfile = b'{}'   # this represents an empty Etherpad file
     # compute its SHA1 hash for later checks if the file was modified
     h = hashlib.sha1()
     h.update(epfile)
@@ -116,16 +114,19 @@ def loadfromstorage(filemd, wopisrc, acctok, docid):
         # create pad with the given docid as name
         _apicall('createGroupPad', {'groupID': groupid, 'padName': docid, 'text': 'placeholder'},
                  acctok=acctok, raiseonnonzerocode=False)
-        # push content
-        res = requests.post(appurl + '/p/' + docid + '/import',
-                            files={'file': (docid + '.etherpad', epfile)},  # a .etherpad file is imported as raw (JSON) content
-                            params={'apikey': apikey},
-                            verify=sslverify)
-        if res.status_code != http.client.OK:
-            log.error('msg="Unable to push document to Etherpad" token="%s" response="%d: %s"' %
-                      (acctok[-20:], res.status_code, res.content.decode()))
-            raise AppFailure
-        log.info('msg="Pushed document to Etherpad" docid="%s" token="%s"' % (docid, acctok[-20:]))
+        if len(epfile) > 0:
+            # push content
+            res = requests.post(appurl + '/p/' + docid + '/import',
+                                files={'file': (docid + '.etherpad', epfile)},  # a .etherpad file is imported as raw (JSON) content
+                                params={'apikey': apikey},
+                                verify=sslverify)
+            if res.status_code != http.client.OK:
+                log.error('msg="Unable to push document to Etherpad" token="%s" response="%d: %s"' %
+                        (acctok[-20:], res.status_code, res.content.decode()))
+                raise AppFailure
+            log.info('msg="Pushed document to Etherpad" docid="%s" token="%s"' % (docid, acctok[-20:]))
+        else:
+            log.info('msg="Empty document created in Etherpad" docid="%s" token="%s"' % (docid, acctok[-20:]))
     except requests.exceptions.ConnectionError as e:
         log.error('msg="Exception raised attempting to connect to Etherpad" method="import" exception="%s"' % e)
         raise AppFailure
