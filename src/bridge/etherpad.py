@@ -73,7 +73,8 @@ def getredirecturl(isreadwrite, wopisrc, acctok, docid, displayname):
     try:
         res = requests.post(appurl + '/setEFSSMetadata',
                             params={'authorID': author['data']['authorID'], 'padID': docid,
-                                    'wopiSrc': wopisrc, 'accessToken': acctok},
+                                    'wopiSrc': wopisrc, 'accessToken': acctok,
+                                    'apikey': apikey},
                             verify=sslverify)
         if res.status_code != http.client.OK:
             log.error('msg="Failed to call Etherpad" method="setEFSSMetadata" token="%s" response="%d: %s"' %
