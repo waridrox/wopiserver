@@ -13,7 +13,7 @@ import hashlib
 import http.client
 import requests
 import bridge.wopiclient as wopic
-
+import urllib.parse
 
 # initialized by the main class or by the init method
 appurl = None
@@ -73,9 +73,10 @@ def getredirecturl(isreadwrite, wopisrc, acctok, docid, displayname):
     try:
         res = requests.post(appurl + '/setEFSSMetadata',
                             params={'authorID': author['data']['authorID'], 'padID': docid,
-                                    'wopiSrc': wopisrc, 'accessToken': acctok,
+                                    'wopiSrc': urllib.parse.quote_plus(wopisrc), 'accessToken': acctok,
                                     'apikey': apikey},
                             verify=sslverify)
+        print("WOPISRC: ", urllib.parse.quote_plus(wopisrc))
         if res.status_code != http.client.OK:
             log.error('msg="Failed to call Etherpad" method="setEFSSMetadata" token="%s" response="%d: %s"' %
                       (acctok[-20:], res.status_code, res.content.decode().replace('"', "'")))

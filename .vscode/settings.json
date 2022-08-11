@@ -1,5 +1,6 @@
 {
   "python.linting.enabled": true,
-  "python.linting.pylintEnabled": true
+  "python.linting.pylintEnabled": true,
+  "python.linting.pylintPath": "/Users/m_warid/Desktop/dev/repos/wopiserver/bin/pylint"
 }
 

@@ -92,7 +92,7 @@ class Wopi:
             cls.app.logger.handlers = [loghandler]
             # read the configuration
             cls.config = configparser.ConfigParser()
-            with open('/etc/wopi/wopiserver.defaults.conf') as fdef:
+            with open('./etc/wopi/wopiserver.defaults.conf') as fdef:
                 cls.config.read_file(fdef)
             cls.config.read('/etc/wopi/wopiserver.conf')
             # load the requested storage layer
