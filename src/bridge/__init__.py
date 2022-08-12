@@ -232,8 +232,7 @@ def appsave(docid):
     except KeyError as e:
         WB.log.error('msg="BridgeSave: malformed or missing metadata" client="%s" headers="%s" args="%s" error="%s"' %
                      (flask.request.remote_addr, flask.request.headers, flask.request.args, e))
-        # this should be BAD_REQUEST but requires a change in CodiMD
-        return wopic.jsonify('Malformed or missing metadata, could not save. %s' % RECOVER_MSG), http.client.INTERNAL_SERVER_ERROR
+        return wopic.jsonify('Malformed or missing metadata, could not save. %s' % RECOVER_MSG), http.client.BAD_REQUEST
     except ValueError as e:
         # this is a new condition, handle it separately
         WB.log.error('msg="BridgeSave: unknown client" client="%s" headers="%s" args="%s" error="%s"' %
