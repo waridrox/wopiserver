@@ -67,16 +67,13 @@ def _apicall(method, params, data=None, acctok=None, raiseonnonzerocode=True):
 
 def getredirecturl(isreadwrite, wopisrc, acctok, docid, displayname):
     '''Return a valid URL to the app for the given WOPI context'''
-    # first create an author ID if not existing (assume the displayname to be unique)
-    author = _apicall('createAuthorIfNotExistsFor', {'authorMapper': displayname, 'name': displayname}, acctok=acctok)
-    # then pass to Etherpad the required metadata for the save webhook
+    # pass to Etherpad the required metadata for the save webhook
     try:
         res = requests.post(appurl + '/setEFSSMetadata',
-                            params={'authorID': author['data']['authorID'], 'padID': docid,
-                                    'wopiSrc': urlparse.quote_plus(wopisrc), 'accessToken': acctok,
+                            params={'padID': docid, 'wopiSrc': urlparse.quote_plus(wopisrc), 'accessToken': acctok,
                                     'apikey': apikey},
                             verify=sslverify)
-        if res.status_code != http.client.OK:
+        if res.status_code != http.client.OK or res.json()['code'] != 0:
             log.error('msg="Failed to call Etherpad" method="setEFSSMetadata" token="%s" response="%d: %s"' %
                       (acctok[-20:], res.status_code, res.content.decode().replace('"', "'")))
             raise AppFailure
